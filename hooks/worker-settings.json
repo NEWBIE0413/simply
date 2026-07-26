@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": ["Write", "Edit"]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/tmdgus/realmyworld/simply/hooks/stop-hook.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

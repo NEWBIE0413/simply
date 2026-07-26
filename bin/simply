@@ -1,0 +1,12 @@
+#!/bin/zsh
+# simply [project-dir] — 현재 tmux pane에서 PM(pi + simply extension)을 시작한다.
+# 워커 pane 생성은 PM의 spawn_worker 도구가 담당하므로, tmux 세션 안에서 실행해야 한다.
+set -e
+export SIMPLY_HOME="${SIMPLY_HOME:-$HOME/realmyworld/simply}"
+PROJECT="${1:-$PWD}"
+if [ -z "$TMUX" ]; then
+  echo "simply: tmux 세션 안에서 실행하세요 (워커 pane 생성에 필요)" >&2
+  exit 1
+fi
+cd "$PROJECT"
+exec pi -e "$SIMPLY_HOME/extension/simply.ts" "${@:2}"
