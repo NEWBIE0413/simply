@@ -1,45 +1,58 @@
-# 개선 루프 (autoresearch rail) — V2 설계 노트
+# Improvement loops (autoresearch rail) — V2 design note
 
-> SEOL 입력(2026-07-27): 루프 엔지니어링은 "에이전트 워크플로우"가 아니라 "루프가 포함된 워크플로우"여야 한다.
-> 에이전트가 개선/오토리서치가 필요하다고 판단하면 스킬을 로드해 직접 환경을 구축하고,
-> 수정이 실제 개선이면 pass, 아니면 롤백. 검증 영역이 불확실하면 에이전트가 합리적 추론으로
-> 레일을 직접 구성하고 그 안에서 루프를 돈다.
+> SEOL input (2026-07-27): loop engineering must be "a workflow that contains loops", not "an agent workflow".
+> When the agent judges that improvement/autoresearch is needed, it loads a skill and builds the environment
+> itself; if a change is a real improvement it passes, otherwise it rolls back. When the verification area is
+> uncertain, the agent constructs the rail itself through reasonable inference and loops inside it.
 
-## 핵심 위험: 레일을 만든 자가 레일 위를 달리면 Goodhart가 온다
+## Core risk: when the rail's builder runs on the rail, Goodhart arrives
 
-측정자와 최적화자가 같은 컨텍스트면, 최적화 압력은 반드시 proxy의 틈을 판다(악의가 아니라 최적화의 본성).
-autoresearch가 연구 환경에서 작동하는 이유는 지표가 외부에서 고정되어 있기 때문이다.
-에이전트가 레일 자체를 그리는 순간, 레일이 탐색 공간에 포함된다 — 이걸 막는 것이 이 설계의 전부다.
+If the measurer and the optimizer share one context, optimization pressure will find the proxy's gaps
+(not out of malice — it is the nature of optimization). Autoresearch works in research settings because
+the metric is fixed externally. The moment the agent draws the rail itself, the rail joins the search
+space — preventing that is this entire design.
 
-## 레일의 4-regime 분류 (루프 진입 전 에이전트의 첫 판단, 레일 선언에 기록)
+## The 4-regime classification of rails (the agent's first judgment before entering a loop, recorded in the rail declaration)
 
-| regime | 상황 | 처리 |
+| regime | situation | handling |
 |---|---|---|
-| A | 명확한 기계 지표 존재 (벤치마크, 테스트, 수치) | 자동 루프 |
-| B | 인간이 판단 가능 (시각·미학·UX) | 지점마다 사용자에게 시각 판단 위임 (QA 체크포인트) |
-| C | 데이터 검증 필요하지만 지표가 불확실 | **레일 자가 구성** — 아래 규율 하에 |
-| D | 합리적 proxy를 원장과 연결해 정당화할 수 없음 | 루프 금지, 에스컬레이션 |
+| A | a clear machine metric exists (benchmark, tests, numbers) | automatic loop |
+| B | a human can judge (visual, aesthetic, UX) | delegate visual judgment to the user at checkpoints (QA checkpoints) |
+| C | data verification needed but the metric is uncertain | **self-constructed rail** — under the discipline below |
+| D | no reasonable proxy can be justified against the ledger's outcome | loop forbidden, escalate |
 
-C에서 "proxy가 원장의 결과와 어떻게 연결되는지"를 서술로 정당화하지 못하면 그건 C가 아니라 D다.
+In C, if you cannot justify in prose "how the proxy connects to the ledger's outcome", it isn't C — it's D.
 
-## Regime C의 규율 — 레일을 위한 레일
+## Regime C discipline — a rail for the rail
 
-1. **Rail freeze**: 레일(지표·방향·판정 명령)은 루프 시작 전에 선언되고, 루프 내부에서 수정 불가.
-   측정 중에 자를 갈아끼우지 않는다. 레일이 틀렸다고 판명되면 → 루프 중단 → 루프 밖에서 개정 → 재시작.
-2. **측정자·최적화자 분리**: 레일 구성은 별도 단계(가능하면 별도 fresh-context 에이전트)가 하고,
-   최적화자는 레일을 받아서 달리기만 한다. 자기 결정의 정당화가 쌓인 컨텍스트는 레일을 관대하게 굽히기 때문.
-3. **Holdout**: 레일 구성 단계가 최적화자에게 노출하지 않는 2차 검증을 rail 선언에 등록하고,
-   수락 시점에 하네스(코드)가 실행한다. 최적화자가 시험지를 미리 보면 proxy 과적합이 된다.
-   (로컬에서 완전한 비밀 유지는 불가능 — bash가 있으니. fresh context + 미주입 + 수락 시 하네스 실행으로 실용적 수준을 확보하고, 이 한계를 인지한다.)
-4. **불변식 바닥 (regression floor)**: 기존 원장 criteria는 전부 불변식이다. 개선 판정은 Pareto 게이트 —
-   지표 개선 AND 모든 기존 기준 pass 유지. 하나라도 깨지면 자동 롤백.
-5. **예산과 탈출구**: 루프당 시도 횟수/토큰 예산. 동일 방향 실패 반복 시 에스컬레이션 (기존 루프 교리 상속).
+1. **Rail freeze**: the rail (metric, direction, verdict command) is declared before the loop starts and
+   cannot be modified inside the loop. You don't swap the ruler mid-measurement. If the rail proves wrong
+   → stop the loop → revise outside the loop → restart.
+2. **Measurer/optimizer separation**: rail construction is a separate stage (ideally a separate
+   fresh-context agent); the optimizer only receives the rail and runs. A context full of its own
+   decision justifications will bend the rail generously.
+3. **Holdout**: the rail-construction stage registers a secondary verification in the rail declaration
+   that is never exposed to the optimizer; the harness (code) runs it at acceptance time. If the optimizer
+   sees the exam in advance, you get proxy overfitting.
+   (Perfect secrecy is impossible locally — bash exists. Fresh context + non-injection + harness-run
+   acceptance gets a practical level, and this limitation is acknowledged.)
+4. **Invariant floor (regression floor)**: all existing ledger criteria are invariants. The improvement
+   verdict is a Pareto gate — metric improves AND every existing criterion still passes. Break one and
+   it auto-rolls back.
+5. **Budget and exits**: per-loop attempt/token budgets. Repeated failure in the same direction escalates
+   (inherited from the existing loop doctrine).
 
-## 구현 스케치 (V2 사이클에서)
+## Implementation sketch (V2 cycle)
 
-- **skill**: `improve` — 에이전트가 개선 루프가 필요하다고 판단할 때 로드하는 절차 모듈 (regime 분류 → 레일 구성/선언 → 루프). "루프가 포함된 워크플로우"의 문서화 계층.
-- **하네스 도구** (판정은 코드가):
-  - `rail_declare {metric_cmd, direction, baseline, holdout_cmds, budget}` — freeze. .simply/rail.json 기록, 이후 수정 시도는 하네스가 거부
-  - `attempt_begin` — git 스냅샷 (커밋/worktree)
-  - `attempt_judge` — metric + 불변식(기존 criteria) 실행 → 개선이면 keep, 아니면 git rollback. 판정·근거를 status ledger에 기록
-- **그래프 통합**: 루프 노드는 그래프의 일급 노드 타입 — (rail, optimizer, judge, budget). rail은 루프 노드의 원장이다. 모래시계가 재귀 적용: 레일 승인/개정은 루프 밖(상위)에서만.
+- **skill**: `improve` — the procedure module the agent loads when it judges an improvement loop is needed
+  (regime classification → rail construction/declaration → loop). The documentation layer of
+  "a workflow that contains loops".
+- **harness tools** (verdicts belong to code):
+  - `rail_declare {metric_cmd, direction, baseline, holdout_cmds, budget}` — freeze. Recorded in
+    .simply/rail.json; later modification attempts are rejected by the harness
+  - `attempt_begin` — git snapshot (commit/worktree)
+  - `attempt_judge` — run metric + invariants (existing criteria) → keep if improved, else git rollback.
+    Verdict and reasoning recorded in the status ledger
+- **graph integration**: a loop node is a first-class node type in the graph — (rail, optimizer, judge,
+  budget). The rail is the loop node's ledger. The hourglass applies recursively: rail approval/revision
+  happens only outside the loop (above it).
