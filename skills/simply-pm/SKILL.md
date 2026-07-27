@@ -31,7 +31,7 @@ Judge the essence of the task first, then match it to a temperament. The criteri
 tmux list-windows -F '#{window_name}' | grep -qx workers || tmux new-window -d -n workers -c "$PWD"
 ```
 
-Cross-window messaging requires smux trust, and this layout is SEOL's standing convention so approval is already established — run `tmux-bridge trust <pane_id>` once right after spawning a worker and messaging won't be blocked later. After spawning, tidy with `tmux select-layout -t workers tiled`. (No `tmux-bridge` on this machine? It is a separate personal CLI — skip the trust steps and message workers with plain `tmux send-keys -t <pane> -l -- '<text>'` followed by `tmux send-keys -t <pane> Enter`.)
+Cross-window messaging requires smux trust, and this layout is SEOL's standing convention so approval is already established — run `tmux-bridge trust <pane_id>` once right after spawning a worker and messaging won't be blocked later. After spawning, tidy with `tmux select-layout -t workers tiled`. (No `tmux-bridge` on this machine? It comes from ShawnPana's smux — https://github.com/ShawnPana/smux — install that, or skip the trust steps and message workers with plain `tmux send-keys -t <pane> -l -- '<text>'` followed by `tmux send-keys -t <pane> Enter`.)
 
 ## Spawning workers
 

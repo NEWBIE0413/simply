@@ -79,7 +79,7 @@ Everything the harness calls by name, what each does, and whether it ships in th
 | `ccv` | 36-line wrapper the PM uses to spawn claude workers: `-y` = `--dangerously-skip-permissions`, `-r` = `--resume`, `-ry <id>` = both | **yes** — `bin/ccv` |
 | `ccx` | the same for Codex CLI: `-y` = `-s danger-full-access`, `-r` = `resume` | **yes** — `bin/ccx` |
 | `agy` | the Antigravity CLI itself (gemini frontend workers) | no — optional; skip it and route frontend elsewhere if you don't use Antigravity |
-| `tmux-bridge` (smux) | my separate cross-pane messaging CLI; the PM skill uses it to talk with codex/agy workers | no — substitute plain `tmux send-keys`; nothing else depends on it |
+| [`tmux-bridge` (smux)](https://github.com/ShawnPana/smux) | ShawnPana's cross-pane agent messaging CLI; the PM skill uses it to talk with codex/agy workers | no — install smux, or substitute plain `tmux send-keys`; nothing else depends on it |
 | `simply-pm` skill | the PM's fleet authority and signal protocol | **yes** — link `skills/simply-pm` into `~/.claude/skills/` so the spawned PM can load it |
 | orchestration / simplepowers skills | personal doctrine skills the docs mention | no — the harness runs without them |
 
