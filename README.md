@@ -67,15 +67,31 @@ Recommended method: paste this repo's URL into the coding agent you already use 
 
 Manual method: clone, put `bin/simply` on your PATH, and walk the Porting list yourself.
 
+## Companion tools
+
+Everything the harness calls by name, what each does, and whether it ships in this repo:
+
+| tool | role | in this repo? |
+|---|---|---|
+| tmux | every node is a pane; spawn/inject go through it | no — install it |
+| [pi](https://github.com/badlogic/pi-mono) | the auditor's harness (`@earendil-works/pi-coding-agent`) | no — install it |
+| Claude Code | the PM and claude workers; the extension spawns stock `claude` | no — install it |
+| `ccv` | 36-line wrapper the PM uses to spawn claude workers: `-y` = `--dangerously-skip-permissions`, `-r` = `--resume`, `-ry <id>` = both | **yes** — `bin/ccv` |
+| `ccx` | the same for Codex CLI: `-y` = `-s danger-full-access`, `-r` = `resume` | **yes** — `bin/ccx` |
+| `agy` | the Antigravity CLI itself (gemini frontend workers) | no — optional; skip it and route frontend elsewhere if you don't use Antigravity |
+| `tmux-bridge` (smux) | my separate cross-pane messaging CLI; the PM skill uses it to talk with codex/agy workers | no — substitute plain `tmux send-keys`; nothing else depends on it |
+| `simply-pm` skill | the PM's fleet authority and signal protocol | **yes** — link `skills/simply-pm` into `~/.claude/skills/` so the spawned PM can load it |
+| orchestration / simplepowers skills | personal doctrine skills the docs mention | no — the harness runs without them |
+
+Codex CLI is optional too: the V1 signal adapter only covers Claude Code workers, so a claude-only fleet is the smallest working setup — tmux + pi + Claude Code + this repo.
+
 ## Porting
 
 Built for one machine. To run it on yours:
 
 - `SIMPLY_HOME` defaults to `~/realmyworld/simply`; export it if the repo lives elsewhere.
 - `hooks/worker-settings.json` and `skills/simply-pm/SKILL.md` contain absolute paths to this repo — adjust them.
-- `ccv` / `ccx` / `agy` referenced in the PM skill are my local wrappers for `claude` (`-y` skip permissions, `-r` resume), `codex` (`-y` full access), and the Antigravity CLI. Substitute your own invocations.
-- The `simply-pm` skill must be discoverable by the spawned PM (e.g. symlink `skills/simply-pm` into `~/.claude/skills/`).
-- Requires: tmux, [pi](https://github.com/badlogic/pi-mono) (`@earendil-works/pi-coding-agent`), Claude Code, and optionally Codex CLI / Antigravity for the non-claude workers.
+- Put `bin/` on your PATH (or copy `ccv`/`ccx` wherever your PATH finds them) so the PM's spawn commands resolve.
 
 ## Status
 

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Codex wrapper script for shorthand options
+
+args=()
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -ry|-yr)
+            args+=(resume -s danger-full-access)
+            shift
+            ;;
+        -r)
+            args+=(resume)
+            shift
+            ;;
+        -y)
+            args+=(-s danger-full-access)
+            shift
+            ;;
+        *)
+            args+=("$1")
+            shift
+            ;;
+    esac
+done
+
+exec codex "${args[@]}"

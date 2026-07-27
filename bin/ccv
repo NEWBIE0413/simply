@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Claude wrapper script for shorthand options
+
+args=()
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -ry|-yr)
+            # A session ID must follow --resume immediately. If
+            # --dangerously-skip-permissions lands between them, claude misses
+            # the ID and opens the session picker (ccv -ry <id> was silently ignored)
+            if [[ "$2" =~ ^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$ ]]; then
+                args+=(--resume "$2" --dangerously-skip-permissions)
+                shift 2
+            else
+                args+=(--resume --dangerously-skip-permissions)
+                shift
+            fi
+            ;;
+        -r)
+            args+=(--resume)
+            shift
+            ;;
+        -y)
+            args+=(--dangerously-skip-permissions)
+            shift
+            ;;
+        *)
+            args+=("$1")
+            shift
+            ;;
+    esac
+done
+
+exec claude "${args[@]}"
