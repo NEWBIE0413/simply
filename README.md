@@ -61,6 +61,12 @@ The auditor starts in the current pane. State a goal; it interviews you to pin t
 
 Layout convention: window 0 holds only the auditor and the PM (the command channel); all workers are packed into a `workers` window, tiled. Worker panes stay human-watchable — you can look at and intervene in any of them at any time.
 
+## Installing
+
+Recommended method: paste this repo's URL into the coding agent you already use and say "install this and summarize how to use it." The Porting section below lists every personal hardcoding it will need to adapt — it is written for that agent as much as for you. Intent-first prompting applies to installation too.
+
+Manual method: clone, put `bin/simply` on your PATH, and walk the Porting list yourself.
+
 ## Porting
 
 Built for one machine. To run it on yours:
